@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terminal de Navegação de Diretórios</title>
+    <style>
+        body {
+            background-color: #2c3e50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        .window {
+            background: #34495e;
+            border: 2px solid #2c3e50;
+            border-radius: 5px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            width: 600px;
+            height: 400px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .title-bar {
+            background: #2c3e50;
+            color: #ffffff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 5px;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+
+        .buttons {
+            display: flex;
+        }
+
+        .buttons div {
+            width: 15px;
+            height: 15px;
+            margin-right: 5px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .close { background: #e74c3c; }
+        .minimize { background: #f39c12; }
+        .maximize { background: #2ecc71; }
+
+        .content {
+            padding: 10px;
+            height: calc(100% - 30px);
+            overflow-y: auto;
+            color: #ffffff;
+            white-space: pre-wrap;
+        }
+
+        pre {
+            margin: 0;
+        }
+
+        .loading {
+            display: inline-block;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+
+        .directory {
+            color: #3498db;
+        }
+
+        .file {
+            color: #2ecc71;
+        }
+
+        .access-message {
+            color: #eeeeee;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="window">
+        <div class="title-bar">
+            <div class="buttons">
+                <div class="close"></div>
+                <div class="minimize"></div>
+                <div class="maximize"></div>
+            </div>
+            <div class="title">📁 Terminal</div>
+        </div>
+        <div class="content" id="terminal-content">
+            <pre id="terminal-output"></pre>
+        </div>
+    </div>
+
+    <script>
+        const terminalOutput = document.getElementById('terminal-output');
+        const terminalContent = document.getElementById('terminal-content');
+
+        const commands = [
+            'cd portfolio',
+            'ls -la',
+            'cat curriculo.txt',
+            'cat projetos.txt',
+            'cd ..',
+            'ls',
+            'cd documentos',
+            'ls'
+        ];
+
+        const commandResponses = {
+            'cd portfolio': 'Navegando para a pasta "portfolio"... 📂\n',
+            'ls -la': '📁 portfolio\n-rw-r--r-- 1 user user 1256 curriculo.txt\n-rw-r--r-- 1 user user 2000 projetos.txt\n',
+            'cat curriculo.txt': 'Conteúdo do curriculo.txt: [Conteúdo do currículo]\n',
+            'cat projetos.txt': 'Conteúdo do projetos.txt: [Conteúdo dos projetos]\n',
+            'cd ..': 'Navegando de volta ao diretório anterior... 🔙\n',
+            'ls': '📁 documentos\n📁 imagens\n📁 portfolio\n',
+            'cd documentos': 'Navegando para a pasta "documentos"... 📂\n',
+            'ls': '📄 documento1.txt\n📄 documento2.pdf\n'
+        };
+
+        let currentCommand = 0;
+        const totalDuration = 6000; // Total em milissegundos
+        const commandDuration = totalDuration / commands.length; // Duração de cada comando
+
+        function typeCommand(command, callback) {
+            terminalOutput.innerHTML += `$ ${command} <span class="loading">|</span>\n`;
+            let index = 0;
+            const typingSpeed = command.length / (commandDuration / 100);
+
+            const interval = setInterval(() => {
+                if (index < command.length) {
+                    terminalOutput.innerHTML += command[index++];
+                } else {
+                    clearInterval(interval);
+                    terminalOutput.innerHTML += '\n';
+                    terminalOutput.innerHTML = terminalOutput.innerHTML.replace(/<span class="loading">.*<\/span>/, '');
+                    callback();
+                }
+                terminalContent.scrollTop = terminalContent.scrollHeight;
+            }, typingSpeed);
+        }
+
+        function showAccessMessage() {
+            terminalOutput.innerHTML += 'Acesso ao diretório "portfolio" obtido! 🎉\n';
+            terminalOutput.innerHTML += 'Pressione Enter para acessar o conteúdo.\n';
+            terminalContent.scrollTop = terminalContent.scrollHeight;
+
+            window.addEventListener('keydown', function(event) {
+                if (event.key === 'Enter') {
+                    window.location.href = '/home/index.html'; // Substitua 'sua_pagina.html' pela URL da página que deseja acessar
+                }
+            });
+        }
+
+        function simulateTerminal() {
+            if (currentCommand < commands.length) {
+                const command = commands[currentCommand];
+                typeCommand(command, () => {
+                    terminalOutput.innerHTML += commandResponses[command] || 'Comando não encontrado.\n';
+                    currentCommand++;
+                    setTimeout(simulateTerminal, commandDuration);
+                });
+            } else {
+                showAccessMessage();
+            }
+        }
+
+        simulateTerminal();
+    </script>
+</body>
+</html>
